@@ -39,7 +39,7 @@ yarn install
 ## Использование
 
 ```js
-const { correct } = require('./src/correct')
+import { correct } from './src/correct.js'
 
 const rawOcrText = `Первый абзац\nиз двух строк\n\nВторой абзац`
 console.log(correct(rawOcrText))
