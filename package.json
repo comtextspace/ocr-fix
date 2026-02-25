@@ -1,0 +1,17 @@
+{
+  "name": "ocr-fix",
+  "version": "1.0.0",
+  "description": "Post-OCR text correction utilities",
+  "type": "module",
+  "main": "src/correct.js",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
+  },
+  "keywords": ["ocr", "text", "correction"],
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
