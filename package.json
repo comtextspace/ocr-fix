@@ -1,6 +1,6 @@
 {
   "name": "@comtext/ocr-fix",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Post-OCR text correction utilities",
   "type": "module",
   "main": "src/correct.js",
@@ -19,6 +19,14 @@
     "correction"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/comtextspace/ocr-fix",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/comtextspace/ocr-fix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/comtextspace/ocr-fix/issues"
+  },
   "publishConfig": {
     "access": "public"
   },
