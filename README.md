@@ -1,5 +1,7 @@
 # ocr-fix
 
+[![npm](https://img.shields.io/npm/v/@comtext/ocr-fix)](https://www.npmjs.com/package/@comtext/ocr-fix)
+
 Post-OCR коррекция текста — набор утилит для исправления артефактов, которые возникают при OCR-распознавании и мешают дальнейшей обработке текста.
 
 ## Что делает функция `correct`
