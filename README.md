@@ -33,13 +33,13 @@ Post-OCR коррекция текста — набор утилит для ис
 ## Установка
 
 ```bash
-yarn install
+yarn add @comtext/ocr-fix
 ```
 
 ## Использование
 
 ```js
-import { correct } from './src/correct.js'
+import { correct } from '@comtext/ocr-fix'
 
 const rawOcrText = `Первый абзац\nиз двух строк\n\nВторой абзац`
 console.log(correct(rawOcrText))

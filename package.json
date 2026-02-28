@@ -1,16 +1,27 @@
 {
-  "name": "ocr-fix",
-  "version": "1.0.0",
+  "name": "@comtext/ocr-fix",
+  "version": "1.0.1",
   "description": "Post-OCR text correction utilities",
   "type": "module",
   "main": "src/correct.js",
+  "exports": "./src/correct.js",
+  "files": [
+    "src/"
+  ],
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
   },
-  "keywords": ["ocr", "text", "correction"],
+  "keywords": [
+    "ocr",
+    "text",
+    "correction"
+  ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "jest": "^29.7.0"
   }

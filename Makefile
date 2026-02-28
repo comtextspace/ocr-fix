@@ -1,4 +1,4 @@
-.PHONY: install test test-watch test-coverage lint clean help
+.PHONY: install test test-watch test-coverage lint clean publish help
 
 help: ## Показать список команд
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -14,6 +14,9 @@ test-watch: ## Тесты в режиме наблюдения (перезапу
 
 test-coverage: ## Тесты с отчётом о покрытии
 	yarn test:coverage
+
+publish: ## Запустить тесты и опубликовать пакет на npm
+	yarn test && yarn publish
 
 clean: ## Удалить node_modules и coverage
 	rm -rf node_modules coverage
