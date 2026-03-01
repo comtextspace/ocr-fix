@@ -4,9 +4,13 @@
 
 Post-OCR коррекция текста — набор утилит для исправления артефактов, которые возникают при OCR-распознавании и мешают дальнейшей обработке текста.
 
-## Что делает функция `correct`
+## API
 
-Применяет набор исправлений, которые полезны после любого OCR:
+Пакет экспортирует две функции.
+
+### `correct(str)`
+
+Корректирует произвольный текст после OCR. Применяет набор исправлений:
 
 | # | Исправление | Пример |
 |---|---|---|
@@ -32,6 +36,32 @@ Post-OCR коррекция текста — набор утилит для ис
 Воспитание творческой активности учащихся в процессе изучения ими математики является одной из актуальных целей нашего школьного преподавания.
 ```
 
+### `correctComtext(str)`
+
+Корректирует файл в формате comtext — Markdown с YAML frontmatter.
+
+Если файл начинается с блока `---`, frontmatter сохраняется без изменений.
+К остальной части текста применяется `correct`.
+
+```
+---
+format: article
+title: Название
+---
+Текст первой строки
+продолжение текста.
+```
+
+↓
+
+```
+---
+format: article
+title: Название
+---
+Текст первой строки продолжение текста.
+```
+
 ## Установка
 
 ```bash
@@ -41,11 +71,17 @@ yarn add @comtext/ocr-fix
 ## Использование
 
 ```js
-import { correct } from '@comtext/ocr-fix'
+import { correct, correctComtext } from '@comtext/ocr-fix'
 
+// Для произвольного текста
 const rawOcrText = `Первый абзац\nиз двух строк\n\nВторой абзац`
 console.log(correct(rawOcrText))
 // "Первый абзац из двух строк\n\nВторой абзац"
+
+// Для comtext-файла с frontmatter
+const comtextFile = `---\nformat: article\n---\nТекст\nпродолжение`
+console.log(correctComtext(comtextFile))
+// "---\nformat: article\n---\nТекст продолжение"
 ```
 
 ## Тесты
@@ -71,7 +107,7 @@ yarn test:coverage
 ```
 ocr-fix/
 ├── src/
-│   └── correct.js       # основная функция
+│   └── correct.js       # correct и correctComtext
 ├── tests/
 │   └── correct.test.js  # Jest-тесты
 ├── package.json

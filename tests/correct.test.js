@@ -1,4 +1,4 @@
-import { correct } from '../src/correct.js'
+import { correct, correctComtext } from '../src/correct.js'
 
 describe('correct()', () => {
   test('пустая строка остаётся пустой', () => {
@@ -223,5 +223,72 @@ describe('correct()', () => {
     const source = 'первое предложение  \nвторое предложение'
     const expected = 'первое предложение второе предложение'
     expect(correct(source)).toBe(expected)
+  })
+})
+
+describe('correctComtext()', () => {
+  test('frontmatter сохраняется нетронутым, тело корректируется', () => {
+    const source =
+      '---\n' +
+      'format: dfdf\n' +
+      'field:\n' +
+      '- unu\n' +
+      '- du\n' +
+      '---\n' +
+      'первая строка\n' +
+      'вторая строка'
+    const expected =
+      '---\n' +
+      'format: dfdf\n' +
+      'field:\n' +
+      '- unu\n' +
+      '- du\n' +
+      '---\n' +
+      'первая строка вторая строка'
+    expect(correctComtext(source)).toBe(expected)
+  })
+
+  test('дефисы и табы внутри frontmatter не изменяются', () => {
+    const source =
+      '---\n' +
+      'title: слово - другое\n' +
+      'tags: [а,\tб]\n' +
+      '---\n' +
+      'текст - пример'
+    const expected =
+      '---\n' +
+      'title: слово - другое\n' +
+      'tags: [а,\tб]\n' +
+      '---\n' +
+      'текст — пример'
+    expect(correctComtext(source)).toBe(expected)
+  })
+
+  test('перенос слова в теле корректируется, в frontmatter нет', () => {
+    const source =
+      '---\n' +
+      'title: школь-\nного\n' +
+      '---\n' +
+      'наш школь-\nного преподавания'
+    const expected =
+      '---\n' +
+      'title: школь-\nного\n' +
+      '---\n' +
+      'наш школьного преподавания'
+    expect(correctComtext(source)).toBe(expected)
+  })
+
+  test('текст без frontmatter обрабатывается как correct()', () => {
+    const source = 'первая строка\nвторая строка'
+    expect(correctComtext(source)).toBe(correct(source))
+  })
+
+  test('пустая строка остаётся пустой', () => {
+    expect(correctComtext('')).toBe('')
+  })
+
+  test('--- не в начале файла не считается frontmatter', () => {
+    const source = 'введение\n---\nfield: value\n---\nтекст'
+    expect(correctComtext(source)).toBe(correct(source))
   })
 })

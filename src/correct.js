@@ -65,4 +65,28 @@ function correct(str) {
   return str
 }
 
-export { correct }
+/**
+ * Регулярное выражение для определения frontmatter в начале файла.
+ * Совпадает с блоком «---\n...\n---» строго в начале строки.
+ */
+const FRONTMATTER_RE = /^---\n[\s\S]*?\n---(\n|$)/
+
+/**
+ * Корректирует файл в формате comtext (Markdown с YAML frontmatter).
+ *
+ * Frontmatter — блок между «---» в самом начале файла — сохраняется без изменений.
+ * К остальной части текста применяется функция {@link correct}.
+ *
+ * @param {string} str - Содержимое comtext-файла
+ * @returns {string} Скорректированный текст с нетронутым frontmatter
+ */
+function correctComtext(str) {
+  const fmMatch = str.match(FRONTMATTER_RE)
+  if (!fmMatch) return correct(str)
+
+  const frontmatter = fmMatch[0]
+  const body = str.slice(frontmatter.length)
+  return frontmatter + correct(body)
+}
+
+export { correct, correctComtext }
