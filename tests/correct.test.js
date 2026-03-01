@@ -106,9 +106,20 @@ describe('correct()', () => {
 
   // --- дефис в роли тире ---
 
-  test('двойной дефис заменяется на тире', () => {
-    expect(correct('слово--слово')).toBe('слово—слово')
+  test('двойной дефис с пробелами заменяется на тире', () => {
     expect(correct('слово -- слово')).toBe('слово — слово')
+    expect(correct('-- начало строки')).toBe('— начало строки')
+  })
+
+  test('двойной дефис без пробелов не заменяется', () => {
+    expect(correct('слово--слово')).toBe('слово--слово')
+  })
+
+  test('--- (разделитель md) и таблицы md не затрагиваются', () => {
+    expect(correct('текс\n\n---\n\nтекст')).toBe('текс\n\n---\n\nтекст')
+    expect(correct('---')).toBe('---')
+    expect(correct('|---|---|')).toBe('|---|---|')
+    expect(correct('|--:|:--:|')).toBe('|--:|:--:|')
   })
 
   test('одиночный дефис между пробелами заменяется на тире', () => {
@@ -159,7 +170,7 @@ describe('correct()', () => {
     expect(correct('XX')).toBe('XX')
   })
 
-  test('кириллическое С и М в римских цифрах заменяются', () => {
+  test('кириллическое С и М в многосимвольных римских цифрах заменяются', () => {
     expect(correct('МСМ')).toBe('MCM')   // 1900
     expect(correct('СМ')).toBe('CM')    // 900
   })
@@ -168,6 +179,14 @@ describe('correct()', () => {
     expect(correct('СИЛА')).toBe('СИЛА')
     expect(correct('Христос')).toBe('Христос')
     expect(correct('МАССА')).toBe('МАССА')
+  })
+
+  test('одиночные кириллические буквы-аббревиатуры не заменяются', () => {
+    // М. — сокращение «Москва» в библиографии
+    expect(correct('общение. М., 1978.')).toBe('общение. М., 1978.')
+    expect(correct('Буева Л. П. Человек: деятельность и общение. М., 1978.')).toBe(
+      'Буева Л. П. Человек: деятельность и общение. М., 1978.'
+    )
   })
 
   test('римские цифры в контексте предложения', () => {
@@ -290,5 +309,24 @@ describe('correctComtext()', () => {
   test('--- не в начале файла не считается frontmatter', () => {
     const source = 'введение\n---\nfield: value\n---\nтекст'
     expect(correctComtext(source)).toBe(correct(source))
+  })
+
+  // --- переводы строк между frontmatter и телом ---
+
+  test('один \n между frontmatter и телом сохраняется', () => {
+    const source = '---\nfield: value\n---\nтекст'
+    const result = correctComtext(source)
+    expect(result).toBe('---\nfield: value\n---\nтекст')
+  })
+
+  test('два \n между frontmatter и телом сохраняются', () => {
+    const source = '---\nfield: value\n---\n\nтекст'
+    const result = correctComtext(source)
+    expect(result).toBe('---\nfield: value\n---\n\nтекст')
+  })
+
+  test('frontmatter без тела не добавляет переводов строк', () => {
+    const source = '---\nfield: value\n---'
+    expect(correctComtext(source)).toBe('---\nfield: value\n---')
   })
 })
