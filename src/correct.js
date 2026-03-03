@@ -149,6 +149,10 @@ function correctComtext(str) {
   // eslint-disable-next-line no-control-regex
   body = body.replace(/\x00(\d+)\x00/g, (_, i) => blocks[Number(i)])
 
+  // protectBlock добавляет \n\n с обеих сторон — если блок уже стоял между
+  // пустыми строками, образуются 4+ переносов подряд; нормализуем до двух.
+  body = body.replace(/\n{3,}/g, '\n\n')
+
   return frontmatter + body
 }
 

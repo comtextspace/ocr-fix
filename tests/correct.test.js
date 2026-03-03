@@ -450,6 +450,25 @@ describe('correctComtext()', () => {
     expect(result).toContain('    продолжение — сноски')
   })
 
+  test('список между абзацами не добавляет лишних пустых строк', () => {
+    const source =
+      'Первый абзац.\n\n' +
+      '* первый пункт\n' +
+      '* второй пункт\n\n' +
+      'Второй абзац.'
+    const result = correctComtext(source)
+    expect(result).toBe('Первый абзац.\n\n* первый пункт\n* второй пункт\n\nВторой абзац.')
+  })
+
+  test('блок кода между абзацами не добавляет лишних пустых строк', () => {
+    const source =
+      'До кода.\n\n' +
+      '```js\nconsole.log(1)\n```\n\n' +
+      'После кода.'
+    const result = correctComtext(source)
+    expect(result).toBe('До кода.\n\n```js\nconsole.log(1)\n```\n\nПосле кода.')
+  })
+
   test('текст до и после блоков корректируется', () => {
     const source =
       '---\nformat: comtext\n---\n' +
