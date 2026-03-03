@@ -77,18 +77,78 @@ const FRONTMATTER_RE = /^---\n[\s\S]*?\n---\n*/
  * Корректирует файл в формате comtext (Markdown с YAML frontmatter).
  *
  * Frontmatter — блок между «---» в самом начале файла — сохраняется без изменений.
- * К остальной части текста применяется функция {@link correct}.
+ * Следующие блоки в теле файла также сохраняются нетронутыми:
+ *  - блоки кода (``` ... ```) и строчный код (`...`)
+ *  - блочные формулы ($$ ... $$) и строчные формулы ($...$)
+ *  - стихи (строки начинающиеся с |)
+ *  - цитаты (строки начинающиеся с >)
+ *  - списки (строки начинающиеся с * или цифры с точкой)
+ *  - многострочные сноски ([^id]: ... с продолжением через 4 пробела)
+ * К остальному тексту применяется функция {@link correct}.
  *
  * @param {string} str - Содержимое comtext-файла
- * @returns {string} Скорректированный текст с нетронутым frontmatter
+ * @returns {string} Скорректированный текст
  */
 function correctComtext(str) {
   const fmMatch = str.match(FRONTMATTER_RE)
-  if (!fmMatch) return correct(str)
+  const frontmatter = fmMatch ? fmMatch[0] : ''
+  let body = str.slice(frontmatter.length)
 
-  const frontmatter = fmMatch[0]
-  const body = str.slice(frontmatter.length)
-  return frontmatter + correct(body)
+  // Механизм защиты блоков: заменяем их плейсхолдерами \x00N\x00,
+  // которые correct() не затронет, а после — восстанавливаем.
+  const blocks = []
+
+  function protect(text) {
+    const id = `\x00${blocks.length}\x00`
+    blocks.push(text)
+    return id
+  }
+
+  // Блочные элементы оборачиваем в \n\n, чтобы правило 3 (склейка строк)
+  // не присоединило соседние строки к плейсхолдеру.
+  function protectBlock(text) {
+    return `\n\n${protect(text)}\n\n`
+  }
+
+  // 1. Блоки кода (``` ... ```) — первыми, чтобы содержимое не попало в другие паттерны
+  body = body.replace(/^```[^\n]*\n[\s\S]*?\n```[ \t]*$/gm, protectBlock)
+
+  // 2. Строчный код (`...`) — после блоков, чтобы ``` не попало сюда
+  body = body.replace(/`[^`\n]+`/g, protect)
+
+  // 3a. Блочные формулы ($$ ... $$)
+  body = body.replace(/^\$\$\n[\s\S]*?\n\$\$[ \t]*$/gm, protectBlock)
+
+  // 3b. Строчные формулы ($...$) — после блочных, чтобы $$ не попало сюда
+  body = body.replace(/\$(?!\$)[^\n$]+\$/g, protect)
+
+  // 4. Стихи: группы строк начинающихся с |
+  body = body.replace(/(^\|[^\n]*\n?)+/gm, protectBlock)
+
+  // 5. Цитаты: корректируем содержимое каждой строки, затем защищаем результат
+  body = body.replace(/(^>[^\n]*\n?)+/gm, (block) => {
+    const corrected = block.replace(/^(>[ \t]?)([^\n]*)/gm, (_, prefix, content) => prefix + correct(content))
+    return protectBlock(corrected)
+  })
+
+  // 6. Списки: группы строк начинающихся с * или цифры с точкой
+  body = body.replace(/(^(\*|\d+\.)[ \t][^\n]*\n?)+/gm, protectBlock)
+
+  // 7. Многострочные сноски: корректируем содержимое каждой строки,
+  //    сохраняя структурные префиксы ([^id]: и 4-пробельный отступ),
+  //    затем защищаем результат от повторной обработки.
+  body = body.replace(/^\[\^[^\]]+\]:[^\n]*(?:\n(?:$|    [^\n]*))*\n?/gm, (block) => {
+    const corrected = block.replace(/^(\[\^[^\]]+\]:[ \t]?|    )([^\n]*)/gm, (_, prefix, content) => prefix + correct(content))
+    return protectBlock(corrected)
+  })
+
+  // Применяем correct() к тексту с плейсхолдерами
+  body = correct(body)
+
+  // Восстанавливаем защищённые блоки
+  body = body.replace(/\x00(\d+)\x00/g, (_, i) => blocks[Number(i)])
+
+  return frontmatter + body
 }
 
 export { correct, correctComtext }

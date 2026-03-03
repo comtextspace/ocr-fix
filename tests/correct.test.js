@@ -324,4 +324,142 @@ describe('correctComtext()', () => {
     const source = '---\nfield: value\n---'
     expect(correctComtext(source)).toBe('---\nfield: value\n---')
   })
+
+  // --- защита блоков ---
+
+  test('блок кода не изменяется, текст вокруг корректируется', () => {
+    const source =
+      'текст - пример\n\n' +
+      '```js\n' +
+      'var x = a - b\n' +
+      'В.И.Ленин\n' +
+      '```\n\n' +
+      'ещё текст - пример'
+    const result = correctComtext(source)
+    expect(result).toContain('```js\nvar x = a - b\nВ.И.Ленин\n```')
+    expect(result).toContain('текст — пример')
+    expect(result).toContain('ещё текст — пример')
+  })
+
+  test('строчный код не изменяется', () => {
+    const source = 'используй `var x = a - b` в коде'
+    expect(correctComtext(source)).toBe('используй `var x = a - b` в коде')
+  })
+
+  test('блочная формула не изменяется', () => {
+    const source =
+      'формула:\n\n' +
+      '$$\n' +
+      'x - y = z\n' +
+      '$$\n\n' +
+      'текст - продолжение'
+    const result = correctComtext(source)
+    expect(result).toContain('$$\nx - y = z\n$$')
+    expect(result).toContain('текст — продолжение')
+  })
+
+  test('строчная формула не изменяется', () => {
+    const source = 'уравнение $x - y = z$ в тексте - пример'
+    const result = correctComtext(source)
+    expect(result).toContain('$x - y = z$')
+    expect(result).toContain('в тексте — пример')
+  })
+
+  test('стихи не склеиваются в одну строку и дефис в конце строки не удаляется', () => {
+    const source =
+      'вступление\n\n' +
+      '| Первая строка стиха\n' +
+      '| Вторая строка-\n' +
+      '| Третья строка\n\n' +
+      'продолжение'
+    const result = correctComtext(source)
+    expect(result).toContain('| Первая строка стиха\n| Вторая строка-\n| Третья строка')
+    expect(result).toContain('вступление')
+    expect(result).toContain('продолжение')
+  })
+
+  test('цитаты не склеиваются в одну строку', () => {
+    const source =
+      'текст\n\n' +
+      '> Первая строка цитаты\n' +
+      '> Вторая строка цитаты\n\n' +
+      'продолжение'
+    const result = correctComtext(source)
+    expect(result).toContain('> Первая строка цитаты\n> Вторая строка цитаты')
+  })
+
+  test('текст внутри цитаты корректируется', () => {
+    const source =
+      'текст\n\n' +
+      '> Строка цитаты - пример\n' +
+      '> В.И.Ленин написал\n\n' +
+      'продолжение'
+    const result = correctComtext(source)
+    // Структура сохраняется
+    expect(result).toContain('> Строка цитаты — пример\n> В. И. Ленин написал')
+  })
+
+  test('список не склеивается в одну строку', () => {
+    const source =
+      'введение\n\n' +
+      '* первый пункт\n' +
+      '* второй пункт\n' +
+      '* третий пункт\n\n' +
+      'заключение'
+    const result = correctComtext(source)
+    expect(result).toContain('* первый пункт\n* второй пункт\n* третий пункт')
+  })
+
+  test('нумерованный список не склеивается', () => {
+    const source =
+      '1. первый\n' +
+      '2. второй\n' +
+      '3. третий'
+    const result = correctComtext(source)
+    expect(result).toContain('1. первый\n2. второй\n3. третий')
+  })
+
+  test('структура многострочной сноски сохраняется', () => {
+    const source =
+      'текст [^1] текст\n\n' +
+      '[^1]: сноска начало\n\n' +
+      '    Второй абзац сноски'
+    const result = correctComtext(source)
+    // 4-пробельный отступ должен остаться нетронутым
+    expect(result).toContain('[^1]: сноска начало\n\n    Второй абзац сноски')
+  })
+
+  test('однострочная сноска корректируется', () => {
+    const source = 'текст [^1]\n\n[^1]: просто сноска'
+    const result = correctComtext(source)
+    expect(result).toContain('[^1]: просто сноска')
+  })
+
+  test('текст внутри сноски корректируется, структура сохраняется', () => {
+    const source =
+      'до сноски - пример\n\n' +
+      '[^1]: сноска - текст\n\n' +
+      '    продолжение - сноски\n\n' +
+      'после сноски - пример'
+    const result = correctComtext(source)
+    // Текст вокруг сноски корректируется
+    expect(result).toContain('до сноски — пример')
+    expect(result).toContain('после сноски — пример')
+    // Текст внутри сноски тоже корректируется
+    expect(result).toContain('[^1]: сноска — текст')
+    expect(result).toContain('    продолжение — сноски')
+  })
+
+  test('текст до и после блоков корректируется', () => {
+    const source =
+      '---\nformat: comtext\n---\n' +
+      'до блока - пример\n\n' +
+      '* один\n' +
+      '* два\n\n' +
+      'после блока - пример'
+    const result = correctComtext(source)
+    expect(result).toContain('до блока — пример')
+    expect(result).toContain('* один\n* два')
+    expect(result).toContain('после блока — пример')
+  })
 })
