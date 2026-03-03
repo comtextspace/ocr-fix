@@ -39,7 +39,7 @@ function correct(str) {
 
   // 4b. Дефис после знака препинания (с опциональным пробелом перед ним) → «знак — »
   //     Охватывает: «,- », «.- », «!- », «?- », «»- », «)- » и варианты с пробелом до дефиса
-  str = str.replace(/([,.:;!?»\)]) ?- /g, '$1 — ')
+  str = str.replace(/([,.:;!?»)]) ?- /g, '$1 — ')
 
   // 4c. Одиночный дефис между пробелами → em dash
   str = str.replace(/ - /g, ' — ')
@@ -137,8 +137,8 @@ function correctComtext(str) {
   // 7. Многострочные сноски: корректируем содержимое каждой строки,
   //    сохраняя структурные префиксы ([^id]: и 4-пробельный отступ),
   //    затем защищаем результат от повторной обработки.
-  body = body.replace(/^\[\^[^\]]+\]:[^\n]*(?:\n(?:$|    [^\n]*))*\n?/gm, (block) => {
-    const corrected = block.replace(/^(\[\^[^\]]+\]:[ \t]?|    )([^\n]*)/gm, (_, prefix, content) => prefix + correct(content))
+  body = body.replace(/^\[\^[^\]]+\]:[^\n]*(?:\n(?:$| {4}[^\n]*))*\n?/gm, (block) => {
+    const corrected = block.replace(/^(\[\^[^\]]+\]:[ \t]?| {4})([^\n]*)/gm, (_, prefix, content) => prefix + correct(content))
     return protectBlock(corrected)
   })
 
@@ -146,6 +146,7 @@ function correctComtext(str) {
   body = correct(body)
 
   // Восстанавливаем защищённые блоки
+  // eslint-disable-next-line no-control-regex
   body = body.replace(/\x00(\d+)\x00/g, (_, i) => blocks[Number(i)])
 
   return frontmatter + body

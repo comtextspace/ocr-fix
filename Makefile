@@ -1,10 +1,13 @@
-.PHONY: install test test-watch test-coverage lint clean publish help
+.PHONY: install lint test test-watch test-coverage clean publish help
 
 help: ## Показать список команд
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
 install: ## Установить зависимости
 	yarn install
+
+lint: ## Проверить код линтером
+	yarn lint
 
 test: ## Запустить тесты
 	yarn test
