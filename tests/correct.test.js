@@ -243,6 +243,35 @@ describe('correct()', () => {
     expect(correct('В.И.Ленин https://example.com/В.И.Ленин')).toBe('В. И. Ленин https://example.com/В.И.Ленин')
   })
 
+  // --- bare-домены (без протокола) ---
+
+  test('bare-домен .ru не получает пробела в домене', () => {
+    expect(correct('сайт wtschaelike.ru доступен')).toBe('сайт wtschaelike.ru доступен')
+  })
+
+  test('bare-домен .com не изменяется', () => {
+    expect(correct('см. example.com за деталями')).toBe('см. example.com за деталями')
+  })
+
+  test('bare-домен с поддоменом не изменяется', () => {
+    expect(correct('адрес www.example.com/path--page')).toBe('адрес www.example.com/path--page')
+  })
+
+  test('bare-домен в ссылке-библиографии не изменяется', () => {
+    const src = '[http://www.wtschaelike.ru/pdf/file_1-3.pdf](http://www.wtschaelike.ru/pdf/file_1-3.pdf)'
+    expect(correct(src)).toBe(src)
+  })
+
+  test('текст вокруг bare-домена корректируется', () => {
+    expect(correct('В.И.Ленин на wtschaelike.ru')).toBe('В. И. Ленин на wtschaelike.ru')
+  })
+
+  test('аббревиатуры с точками не путаются с доменами', () => {
+    // т.д., т.е. — Cyrillic, не должны защищаться как домены
+    expect(correct('и т.д.')).toBe('и т. д.')
+    expect(correct('т.е. смысл')).toBe('т. е. смысл')
+  })
+
   // --- нормализация пробелов ---
 
   test('несколько пробелов подряд сжимаются в один', () => {

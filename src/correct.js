@@ -18,6 +18,8 @@
  *  7. Несколько пробелов подряд → один пробел.
  *
  * URL, начинающиеся с http:// или https://, не изменяются.
+ * Bare-домены (без протокола) с популярными TLD тоже не изменяются
+ * (например, wtschaelike.ru, www.example.com/path).
  *
  * @param {string} str - Входной текст после OCR
  * @returns {string} Скорректированный текст
@@ -29,14 +31,21 @@ function correct(str) {
   //    Используем \x01N\x01 как плейсхолдер (\x01 — управляющий символ,
   //    не встречающийся в OCR-тексте; \x00 занят механизмом correctComtext).
   const savedUrls = []
-  // [^\s\x00\x01]+ вместо \S+: останавливаемся на плейсхолдерах \x00 (correctComtext)
-  // и \x01 (собственные), чтобы не «заглотить» их как часть URL.
-  // eslint-disable-next-line no-control-regex
-  str = str.replace(/https?:\/\/[^\s\x00\x01]+/g, (url) => {
-    const idx = savedUrls.length
-    savedUrls.push(url)
-    return `\x01${idx}\x01`
-  })
+  // Защищаем два вида адресов:
+  //  • https?:// — полные URL с протоколом
+  //  • bare-домены с популярными TLD: example.ru, www.site.com/path и т.п.
+  // [^\s\x00\x01]+ вместо \S+: останавливаемся на плейсхолдерах \x00/\x01.
+  // Список TLD намеренно ограничен популярными: он защищает реальные имена хостов
+  // и не задевает аббревиатуры вроде «U.S.A.» или «т.д.».
+  str = str.replace(
+    // eslint-disable-next-line no-control-regex
+    /https?:\/\/[^\s\x00\x01]+|\b[a-zA-Z0-9][a-zA-Z0-9-]*(?:\.[a-zA-Z0-9][a-zA-Z0-9-]*)*\.(?:ru|su|com|net|org|info|biz|io|me|app|dev|uk|de|fr|es|it|nl|pl|eu|ua|by|kz|us|ca|au|jp|cn|br|in|ch)(?:\/[^\s\x00\x01]*)?/gi,
+    (match) => {
+      const idx = savedUrls.length
+      savedUrls.push(match)
+      return `\x01${idx}\x01`
+    }
+  )
 
   // 1. Все пробельные символы кроме \n → обычный пробел
   str = str.replace(/[^\S\n]/g, ' ')
