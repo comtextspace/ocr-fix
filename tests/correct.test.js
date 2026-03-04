@@ -469,6 +469,30 @@ describe('correctComtext()', () => {
     expect(result).toBe('До кода.\n\n```js\nconsole.log(1)\n```\n\nПосле кода.')
   })
 
+  test('url в ссылке не изменяется', () => {
+    const source = '[текст ссылки](https://example.com/path?a=1&b=2)'
+    const result = correctComtext(source)
+    expect(result).toBe('[текст ссылки](https://example.com/path?a=1&b=2)')
+  })
+
+  test('текст ссылки корректируется, url нет', () => {
+    const source = '[В.И.Ленин](https://example.com)'
+    const result = correctComtext(source)
+    expect(result).toBe('[В. И. Ленин](https://example.com)')
+  })
+
+  test('url с дефисами не превращается в тире', () => {
+    const source = '[ссылка](https://my-site.com/path--page)'
+    const result = correctComtext(source)
+    expect(result).toBe('[ссылка](https://my-site.com/path--page)')
+  })
+
+  test('изображение: url не изменяется, alt корректируется', () => {
+    const source = '![В.И.Ленин](https://example.com/img.png)'
+    const result = correctComtext(source)
+    expect(result).toBe('![В. И. Ленин](https://example.com/img.png)')
+  })
+
   test('текст до и после блоков корректируется', () => {
     const source =
       '---\nformat: comtext\n---\n' +
