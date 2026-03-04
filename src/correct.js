@@ -17,12 +17,24 @@
  *     без пробела → добавить пробел («В.И.Ленин» → «В. И. Ленин», «т.1» → «т. 1»).
  *  7. Несколько пробелов подряд → один пробел.
  *
+ * URL, начинающиеся с http:// или https://, не изменяются.
+ *
  * @param {string} str - Входной текст после OCR
  * @returns {string} Скорректированный текст
  */
 
 
 function correct(str) {
+  // 0. Защищаем URL (http:// и https://) — они не должны изменяться.
+  //    Используем \x01N\x01 как плейсхолдер (\x01 — управляющий символ,
+  //    не встречающийся в OCR-тексте; \x00 занят механизмом correctComtext).
+  const savedUrls = []
+  str = str.replace(/https?:\/\/\S+/g, (url) => {
+    const idx = savedUrls.length
+    savedUrls.push(url)
+    return `\x01${idx}\x01`
+  })
+
   // 1. Все пробельные символы кроме \n → обычный пробел
   str = str.replace(/[^\S\n]/g, ' ')
 
@@ -61,6 +73,12 @@ function correct(str) {
 
   // 7. Несколько пробелов подряд → один пробел
   str = str.replace(/ {2,}/g, ' ')
+
+  // 0 (restore). Восстанавливаем защищённые URL
+  if (savedUrls.length > 0) {
+    // eslint-disable-next-line no-control-regex
+    str = str.replace(/\x01(\d+)\x01/g, (_, i) => savedUrls[Number(i)])
+  }
 
   return str
 }

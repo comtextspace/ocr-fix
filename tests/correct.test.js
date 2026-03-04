@@ -221,6 +221,28 @@ describe('correct()', () => {
     expect(correct('конец.\nНовое')).toBe('конец. Новое')
   })
 
+  // --- URL ---
+
+  test('http url не изменяется', () => {
+    expect(correct('см. http://example.com/path')).toBe('см. http://example.com/path')
+  })
+
+  test('https url не изменяется', () => {
+    expect(correct('подробнее: https://my-site.com/page--two')).toBe('подробнее: https://my-site.com/page--two')
+  })
+
+  test('url с точками в домене не получает лишних пробелов', () => {
+    expect(correct('https://www.example.com/file.html')).toBe('https://www.example.com/file.html')
+  })
+
+  test('url с параметрами не изменяется', () => {
+    expect(correct('https://example.com/path?a=1&b=t.d')).toBe('https://example.com/path?a=1&b=t.d')
+  })
+
+  test('текст вокруг url корректируется, url нет', () => {
+    expect(correct('В.И.Ленин https://example.com/В.И.Ленин')).toBe('В. И. Ленин https://example.com/В.И.Ленин')
+  })
+
   // --- нормализация пробелов ---
 
   test('несколько пробелов подряд сжимаются в один', () => {
