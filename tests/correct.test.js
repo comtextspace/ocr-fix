@@ -515,6 +515,15 @@ describe('correctComtext()', () => {
     expect(result).toBe('![В. И. Ленин](https://example.com/img.png)')
   })
 
+  test('ссылка где текст совпадает с url — url не изменяется', () => {
+    // Ссылка вида [http://url](http://url): текст ссылки является URL,
+    // url в () не должен превращаться в плейсхолдер (\x00) в результате
+    const url = 'http://www.wtschaelike.ru/pdf/file_1-3.pdf'
+    const source = `[${url}](${url})`
+    const result = correctComtext(source)
+    expect(result).toBe(`[${url}](${url})`)
+  })
+
   test('текст до и после блоков корректируется', () => {
     const source =
       '---\nformat: comtext\n---\n' +

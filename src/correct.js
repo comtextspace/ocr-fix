@@ -29,7 +29,10 @@ function correct(str) {
   //    Используем \x01N\x01 как плейсхолдер (\x01 — управляющий символ,
   //    не встречающийся в OCR-тексте; \x00 занят механизмом correctComtext).
   const savedUrls = []
-  str = str.replace(/https?:\/\/\S+/g, (url) => {
+  // [^\s\x00\x01]+ вместо \S+: останавливаемся на плейсхолдерах \x00 (correctComtext)
+  // и \x01 (собственные), чтобы не «заглотить» их как часть URL.
+  // eslint-disable-next-line no-control-regex
+  str = str.replace(/https?:\/\/[^\s\x00\x01]+/g, (url) => {
     const idx = savedUrls.length
     savedUrls.push(url)
     return `\x01${idx}\x01`
