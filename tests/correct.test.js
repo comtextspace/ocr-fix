@@ -565,4 +565,36 @@ describe('correctComtext()', () => {
     expect(result).toContain('* один\n* два')
     expect(result).toContain('после блока — пример')
   })
+
+  // --- граничные случаи: начало/конец файла ---
+
+  test('цитата в конце файла не добавляет лишний \\n', () => {
+    const source =
+      '> И мне снова хочется крикнуть:\n' +
+      '>\n' +
+      '> — Да отстаньте!\n' +
+      '>\n' +
+      '> Здесь, и баста.\n'
+    expect(correctComtext(source)).toBe(source)
+  })
+
+  test('цитата в начале файла не добавляет лишний \\n перед ней', () => {
+    const source = '> Первая цитата\n\nОбычный текст\n'
+    expect(correctComtext(source)).toBe(source)
+  })
+
+  test('файл состоит только из цитаты без \\n — \\n не добавляется', () => {
+    const source = '> Только цитата'
+    expect(correctComtext(source)).toBe(source)
+  })
+
+  test('список в конце файла не добавляет лишний \\n', () => {
+    const source = 'Введение:\n\n* пункт один\n* пункт два\n'
+    expect(correctComtext(source)).toBe(source)
+  })
+
+  test('блок кода в конце файла не добавляет лишний \\n', () => {
+    const source = 'Пример:\n\n```js\nconsole.log(1)\n```\n'
+    expect(correctComtext(source)).toBe(source)
+  })
 })

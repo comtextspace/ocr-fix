@@ -126,6 +126,12 @@ function correctComtext(str) {
   const frontmatter = fmMatch ? fmMatch[0] : ''
   let body = str.slice(frontmatter.length)
 
+  // Сохраняем ведущие и хвостовые \n тела: protectBlock добавляет \n\n вокруг
+  // каждого блока, что может исказить начало/конец файла.
+  // После всей обработки восстанавливаем их точно в исходном виде.
+  const leadingNL = body.match(/^\n*/)[0]
+  const trailingNL = body.match(/\n*$/)[0]
+
   // Механизм защиты блоков: заменяем их плейсхолдерами \x00N\x00,
   // которые correct() не затронет, а после — восстанавливаем.
   const blocks = []
@@ -189,6 +195,10 @@ function correctComtext(str) {
   // protectBlock добавляет \n\n с обеих сторон — если блок уже стоял между
   // пустыми строками, образуются 4+ переносов подряд; нормализуем до двух.
   body = body.replace(/\n{3,}/g, '\n\n')
+
+  // Восстанавливаем исходные ведущие/хвостовые \n, которые protectBlock мог исказить
+  // (например, добавить \n\n в начало/конец если файл начинается/кончается блоком).
+  body = body.replace(/^\n*/, leadingNL).replace(/\n*$/, trailingNL)
 
   return frontmatter + body
 }
