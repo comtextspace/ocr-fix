@@ -538,6 +538,17 @@ describe('correctComtext()', () => {
     expect(result).toBe('[ссылка](https://my-site.com/path--page)')
   })
 
+  test('url внутри ссылок в списке не заменяется плейсхолдером', () => {
+    // Баг: URL внутри пункта списка заменялись на \x00N\x00 (отображалось как " 1 ", " 2 " и т.д.)
+    // из-за того, что restore делал один проход и не раскрывал вложенные плейсхолдеры.
+    const source =
+      '* [Предыстория реплики](http://worldcrisis.ru/crisis/360089/full_replic_t)\n' +
+      '* [Все реплики на эту тему](http://worldcrisis.ru/crisis/358701/thread_t)\n' +
+      '* [Эта реплика и следующие](http://worldcrisis.ru/crisis/358701/thread_t?NEXT_ITEM=360089)\n'
+    const result = correctComtext(source)
+    expect(result).toBe(source)
+  })
+
   test('изображение: url не изменяется, alt корректируется', () => {
     const source = '![В.И.Ленин](https://example.com/img.png)'
     const result = correctComtext(source)

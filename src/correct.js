@@ -188,9 +188,16 @@ function correctComtext(str) {
   // Применяем correct() к тексту с плейсхолдерами
   body = correct(body)
 
-  // Восстанавливаем защищённые блоки
-  // eslint-disable-next-line no-control-regex
-  body = body.replace(/\x00(\d+)\x00/g, (_, i) => blocks[Number(i)])
+  // Восстанавливаем защищённые блоки.
+  // Два прохода нужны потому, что блок списка/цитаты может содержать внутри
+  // себя плейсхолдеры URL (шаг 2b выполняется раньше шага 6), а JavaScript
+  // не пересканирует строку подстановки внутри replace().
+  let prev
+  do {
+    prev = body
+    // eslint-disable-next-line no-control-regex
+    body = body.replace(/\x00(\d+)\x00/g, (_, i) => blocks[Number(i)])
+  } while (body !== prev)
 
   // protectBlock добавляет \n\n с обеих сторон — если блок уже стоял между
   // пустыми строками, образуются 4+ переносов подряд; нормализуем до двух.
