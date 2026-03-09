@@ -1,6 +1,6 @@
 {
   "name": "@comtext/ocr-fix",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "description": "Post-OCR text correction utilities",
   "type": "module",
   "main": "src/correct.js",
