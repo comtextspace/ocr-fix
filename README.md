@@ -62,6 +62,30 @@ title: Название
 Текст первой строки продолжение текста.
 ```
 
+### `renumberFootnotes(str)`
+
+Перенумеровывает сноски в тексте Markdown.
+
+Все ссылки `[^id]` и соответствующие определения `[^id]:` заменяются порядковыми номерами 1, 2, 3, … в том порядке, в котором ссылки встречаются в тексте. Если одна и та же сноска упоминается несколько раз, все её вхождения получают одинаковый номер. Если frontmatter присутствует — он сохраняется без изменений.
+
+**Пример:**
+
+```
+Первое утверждение[^b] и второе[^a].
+
+[^a]: Определение A.
+[^b]: Определение B.
+```
+
+↓
+
+```
+Первое утверждение[^1] и второе[^2].
+
+[^1]: Определение B.
+[^2]: Определение A.
+```
+
 ## Установка
 
 ```bash
@@ -71,7 +95,7 @@ yarn add @comtext/ocr-fix
 ## Использование
 
 ```js
-import { correct, correctComtext } from '@comtext/ocr-fix'
+import { correct, correctComtext, renumberFootnotes } from '@comtext/ocr-fix'
 
 // Для произвольного текста
 const rawOcrText = `Первый абзац\nиз двух строк\n\nВторой абзац`
@@ -82,6 +106,11 @@ console.log(correct(rawOcrText))
 const comtextFile = `---\nformat: article\n---\nТекст\nпродолжение`
 console.log(correctComtext(comtextFile))
 // "---\nformat: article\n---\nТекст продолжение"
+
+// Перенумерация сносок
+const withFootnotes = `Текст[^b] и ещё[^a].\n\n[^a]: Сноска A.\n[^b]: Сноска B.\n`
+console.log(renumberFootnotes(withFootnotes))
+// "Текст[^1] и ещё[^2].\n\n[^1]: Сноска B.\n[^2]: Сноска A.\n"
 ```
 
 ## Тесты

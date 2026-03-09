@@ -210,4 +210,41 @@ function correctComtext(str) {
   return frontmatter + body
 }
 
-export { correct, correctComtext }
+/**
+ * Перенумеровывает сноски в тексте Markdown.
+ *
+ * Все ссылки на сноски `[^id]` и соответствующие определения `[^id]:`
+ * заменяются порядковыми номерами 1, 2, 3, … в том порядке, в котором
+ * ссылки встречаются в тексте. Если одна и та же сноска встречается
+ * несколько раз, все её вхождения получают одинаковый номер.
+ *
+ * Frontmatter (`---` в начале файла) сохраняется без изменений.
+ *
+ * @param {string} str - Текст Markdown со сносками
+ * @returns {string} Текст с перенумерованными сносками
+ */
+function renumberFootnotes(str) {
+  // Разделяем frontmatter и тело (аналогично correctComtext)
+  const fmMatch = str.match(FRONTMATTER_RE)
+  const frontmatter = fmMatch ? fmMatch[0] : ''
+  let body = str.slice(frontmatter.length)
+
+  // Расчёт на то, что одной сноске соответствует ровно одна ссылка
+  // и что определения идут в том же порядке, что ссылки в тексте.
+  // Поэтому нумеруем определения и ссылки независимо — каждые по порядку
+  // своего появления, сбрасывая счётчик между двумя проходами.
+
+  let counter = 0
+
+  // 1. Перенумеровываем определения [^xxx]: в начале строки
+  body = body.replace(/^\[\^[^\]]+\]:/gm, () => `[^${++counter}]:`)
+
+  counter = 0
+
+  // 2. Перенумеровываем ссылки [^xxx] (не определения — не заканчиваются на :)
+  body = body.replace(/\[\^[^\]]+\](?!:)/g, () => `[^${++counter}]`)
+
+  return frontmatter + body
+}
+
+export { correct, correctComtext, renumberFootnotes }

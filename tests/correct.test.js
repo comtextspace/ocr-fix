@@ -1,4 +1,4 @@
-import { correct, correctComtext } from '../src/correct.js'
+import { correct, correctComtext, renumberFootnotes } from '../src/correct.js'
 
 describe('correct()', () => {
   test('пустая строка остаётся пустой', () => {
@@ -288,6 +288,108 @@ describe('correct()', () => {
     const source = 'первое предложение  \nвторое предложение'
     const expected = 'первое предложение второе предложение'
     expect(correct(source)).toBe(expected)
+  })
+})
+
+describe('renumberFootnotes()', () => {
+  test('пустая строка остаётся пустой', () => {
+    expect(renumberFootnotes('')).toBe('')
+  })
+
+  test('текст без сносок не изменяется', () => {
+    const source = 'Просто текст без каких-либо сносок.'
+    expect(renumberFootnotes(source)).toBe(source)
+  })
+
+  test('одна сноска с произвольным id получает номер 1', () => {
+    const source = 'Текст[^abc] продолжение.\n\n[^abc]: Определение сноски.'
+    const expected = 'Текст[^1] продолжение.\n\n[^1]: Определение сноски.'
+    expect(renumberFootnotes(source)).toBe(expected)
+  })
+
+  test('основной случай: все сноски с одинаковым id нумеруются по порядку', () => {
+    // При OCR-оцифровке сноски могут получить одинаковый или случайный id.
+    // Определения нумеруются по порядку появления (сверху вниз),
+    // ссылки — тоже по порядку появления (сверху вниз), счётчики независимы.
+    const source =
+      'Первое утверждение[^1] и второе[^1], третье[^1].\n\n' +
+      '[^1]: Сноска A.\n' +
+      '[^1]: Сноска B.\n' +
+      '[^1]: Сноска C.\n'
+    const expected =
+      'Первое утверждение[^1] и второе[^2], третье[^3].\n\n' +
+      '[^1]: Сноска A.\n' +
+      '[^2]: Сноска B.\n' +
+      '[^3]: Сноска C.\n'
+    expect(renumberFootnotes(source)).toBe(expected)
+  })
+
+  test('три сноски с нечисловыми id нумеруются по порядку', () => {
+    const source =
+      'Введение[^intro] и основная часть[^main], заключение[^end].\n\n' +
+      '[^intro]: Сноска к введению.\n' +
+      '[^main]: Сноска к основной части.\n' +
+      '[^end]: Сноска к заключению.\n'
+    const expected =
+      'Введение[^1] и основная часть[^2], заключение[^3].\n\n' +
+      '[^1]: Сноска к введению.\n' +
+      '[^2]: Сноска к основной части.\n' +
+      '[^3]: Сноска к заключению.\n'
+    expect(renumberFootnotes(source)).toBe(expected)
+  })
+
+  test('определения и ссылки нумеруются независимо (разные счётчики)', () => {
+    // Если определений больше чем ссылок — ссылки получают свои номера,
+    // определения свои; соответствие поддерживается только при условии
+    // одинакового порядка.
+    const source =
+      'Текст[^x].\n\n' +
+      '[^x]: Определение 1.\n' +
+      '[^y]: Определение 2.\n'
+    const expected =
+      'Текст[^1].\n\n' +
+      '[^1]: Определение 1.\n' +
+      '[^2]: Определение 2.\n'
+    expect(renumberFootnotes(source)).toBe(expected)
+  })
+
+  test('frontmatter сохраняется нетронутым', () => {
+    const source =
+      '---\n' +
+      'title: Статья\n' +
+      '---\n' +
+      'Текст[^1] продолжение.\n\n' +
+      '[^1]: Определение.\n'
+    const result = renumberFootnotes(source)
+    expect(result).toBe(
+      '---\n' +
+      'title: Статья\n' +
+      '---\n' +
+      'Текст[^1] продолжение.\n\n' +
+      '[^1]: Определение.\n'
+    )
+  })
+
+  test('frontmatter со сноской-подобным текстом не трогается', () => {
+    // [^note] в frontmatter не должен изменяться
+    const source =
+      '---\n' +
+      'comment: см. [^note]\n' +
+      '---\n' +
+      'Текст[^note].\n\n' +
+      '[^note]: Определение.\n'
+    const result = renumberFootnotes(source)
+    expect(result).toContain('comment: см. [^note]') // frontmatter не тронут
+    expect(result).toContain('Текст[^1].')
+    expect(result).toContain('[^1]: Определение.')
+  })
+
+  test('уже правильно пронумерованные сноски не изменяются', () => {
+    const source =
+      'Первое[^1] и второе[^2].\n\n' +
+      '[^1]: Сноска 1.\n' +
+      '[^2]: Сноска 2.\n'
+    expect(renumberFootnotes(source)).toBe(source)
   })
 })
 
